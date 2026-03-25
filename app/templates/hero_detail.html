@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+{% block title %}{{ hero.name }} - Héros Africains{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-banner {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .hero-info-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 100px;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #FFD700, #FFC700);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .info-icon i {
+        color: #1a1a1a;
+        font-size: 1.2rem;
+    }
+    
+    .bio-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .achievements-list {
+        list-style: none;
+    }
+    
+    .achievements-list li {
+        display: flex;
+        align-items: start;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #FFD700;
+        transition: all 0.3s ease;
+    }
+    
+    .achievements-list li:hover {
+        background: rgba(255, 215, 0, 0.05);
+        transform: translateX(5px);
+    }
+    
+    .achievements-list i {
+        color: #06A77D;
+        margin-right: 1rem;
+        margin-top: 0.3rem;
+        font-size: 1.1rem;
+    }
+    
+    .related-heroes {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 107, 53, 0.02) 100%);
+        padding: 3rem 0;
+        margin-top: 3rem;
+    }
+    
+    .related-hero-card {
+        transition: all 0.3s ease;
+    }
+    
+    .related-hero-card:hover {
+        transform: translateY(-8px);
+    }
+    
+    .timeline-item {
+        display: flex;
+        margin-bottom: 2rem;
+    }
+    
+    .timeline-marker {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #FFD700, #FFC700);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1.5rem;
+        flex-shrink: 0;
+        font-weight: 700;
+        color: #1a1a1a;
+        font-size: 0.9rem;
+    }
+    
+    .timeline-content {
+        flex-grow: 1;
+    }
+    
+    .timeline-content h4 {
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+    
+    .timeline-content p {
+        color: #6c757d;
+        margin: 0;
+    }
+    
+    .quote-section {
+        background: linear-gradient(135deg, #FFD700, #FF6B35);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin: 2rem 0;
+        text-align: center;
+        font-style: italic;
+        font-size: 1.2rem;
+        box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+    }
+    
+    .share-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .share-btn {
+        flex: 1;
+        min-width: 150px;
+        padding: 0.8rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .share-btn:hover {
+        border-color: #FFD700;
+        background: rgba(255, 215, 0, 0.05);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Fil d'Ariane -->
+<nav aria-label="breadcrumb" class="py-4" style="background: white; border-bottom: 1px solid #f0f0f0;">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="/category/{{ hero.category_id }}" class="text-decoration-none">{{ hero.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ hero.name }}</li>
+        </ol>
+    </div>
+</nav>
+
+<!-- Hero Banner Section -->
+<section class="hero-banner py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div style="position: relative; z-index: 2;">
+                    <span class="badge bg-warning text-dark mb-3">
+                        <i class="fas fa-star me-1"></i>{{ hero.category.name }}
+                    </span>
+                    <h1 class="display-4 fw-bold mb-3">{{ hero.name }}</h1>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="text-muted">
+                            <i class="fas fa-map-marker-alt text-warning me-2"></i>
+                            <strong>{{ hero.country }}</strong>
+                        </span>
+                        <span class="text-muted">
+                            <i class="fas fa-calendar text-warning me-2"></i>
+                            <strong>{{ hero.era }}</strong>
+                        </span>
+                        <span class="text-muted">
+                            <i class="fas fa-eye text-warning me-2"></i>
+                            <strong id="viewCount">{{ hero.views }}</strong> visites
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <i class="fas fa-crown" style="font-size: 5rem; color: rgba(255, 215, 0, 0.2);"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contenu Principal -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Contenu Gauche -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <!-- Image du Héros -->
+                <div style="margin-bottom: 2rem;">
+                    <img src="{{ hero.image_url }}" alt="{{ hero.name }}" class="img-fluid rounded-4" style="max-height: 500px; width: 100%; object-fit: cover; box-shadow: 0 12px 40px rgba(0,0,0,0.15);">
+                </div>
+
+                <!-- Biographie -->
+                <div class="bio-section">
+                    <h2 class="fw-bold mb-4">
+                        <i class="fas fa-book text-warning me-2"></i>Biographie
+                    </h2>
+                    <p class="lead text-justify" style="font-size: 1.05rem; line-height: 2; color: #333;">
+                        {{ hero.bio }}
+                    </p>
+                </div>
+
+                <!-- Réalisations -->
+                {% if hero.achievements %}
+                <div class="bio-section">
+                    <h2 class="fw-bold mb-4">
+                        <i class="fas fa-trophy text-warning me-2"></i>Réalisations et Contributions
+                    </h2>
+                    <ul class="achievements-list">
+                        {% for achievement in hero.achievements.split('\n') %}
+                            {% if achievement.strip() %}
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>{{ achievement.strip() }}</strong>
+                                </div>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Timeline -->
+                {% if hero.birth_year or hero.death_year %}
+                <div class="bio-section">
+                    <h2 class="fw-bold mb-4">
+                        <i class="fas fa-hourglass-start text-warning me-2"></i>Chronologie de Vie
+                    </h2>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">📅</div>
+                        <div class="timeline-content">
+                            <h4>Naissance</h4>
+                            <p>
+                                {% if hero.birth_year %}
+                                    {{ hero.birth_year }}
+                                {% else %}
+                                    Date inconnue
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">⭐</div>
+                        <div class="timeline-content">
+                            <h4>Période Active</h4>
+                            <p>
+                                {% if hero.birth_year and hero.death_year %}
+                                    {{ hero.birth_year }} - {{ hero.death_year }} ({{ hero.death_year - hero.birth_year }} ans)
+                                {% elif hero.birth_year %}
+                                    À partir de {{ hero.birth_year }}
+                                {% elif hero.death_year %}
+                                    Jusqu'à {{ hero.death_year }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Questions de Quiz -->
+                {% if hero.quiz_questions %}
+                <div class="bio-section" style="background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 102, 204, 0.02) 100%); border-left: 5px solid #0066CC;">
+                    <h2 class="fw-bold mb-4">
+                        <i class="fas fa-brain text-info me-2"></i>Testez vos Connaissances
+                    </h2>
+                    <p class="mb-3">
+                        <strong>{{ hero.quiz_questions|length }} question(s)</strong> de quiz disponible(s) sur ce héros. Testez vos connaissances et participez à notre plateforme interactive!
+                    </p>
+                    <a href="/quiz" class="btn btn-info btn-lg">
+                        <i class="fas fa-play-circle me-2"></i>Accéder au Quiz
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar Droite -->
+            <div class="col-lg-4">
+                <div class="hero-info-card">
+                    <h3 class="fw-bold mb-4">
+                        <i class="fas fa-info-circle me-2"></i>Informations
+                    </h3>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <strong>Pays d'Origine</strong>
+                            <p class="text-muted mb-0">{{ hero.country }}</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div>
+                            <strong>Époque</strong>
+                            <p class="text-muted mb-0">{{ hero.era }}</p>
+                        </div>
+                    </div>
+
+                    {% if hero.birth_year %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-birthday-cake"></i>
+                        </div>
+                        <div>
+                            <strong>Année de Naissance</strong>
+                            <p class="text-muted mb-0">{{ hero.birth_year }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hero.death_year %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-dove"></i>
+                        </div>
+                        <div>
+                            <strong>Année de Décès</strong>
+                            <p class="text-muted mb-0">{{ hero.death_year }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div>
+                            <strong>Catégorie</strong>
+                            <a href="/category/{{ hero.category_id }}" class="d-inline-block mt-1">
+                                <span class="badge bg-warning">{{ hero.category.name }}</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div>
+                            <strong>Consultations</strong>
+                            <p class="text-muted mb-0"><strong>{{ hero.views }}</strong> visites</p>
+                        </div>
+                    </div>
+
+                    <!-- Boutons de partage -->
+                    <hr class="my-4">
+                    <div>
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-share-alt me-2"></i>Partager
+                        </h5>
+                        <div class="share-buttons">
+                            <button class="share-btn" onclick="shareOn('facebook')" title="Partager sur Facebook">
+                                <i class="fab fa-facebook"></i>
+                                <span class="d-none d-sm-inline">Facebook</span>
+                            </button>
+                            <button class="share-btn" onclick="shareOn('twitter')" title="Partager sur Twitter">
+                                <i class="fab fa-twitter"></i>
+                                <span class="d-none d-sm-inline">Twitter</span>
+                            </button>
+                            <button class="share-btn" onclick="shareOn('linkedin')" title="Partager sur LinkedIn">
+                                <i class="fab fa-linkedin"></i>
+                                <span class="d-none d-sm-inline">LinkedIn</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <hr class="my-4">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-warning" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Imprimer
+                        </button>
+                        <a href="/" class="btn btn-outline-dark">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Héros Liés -->
+{% if related_heroes %}
+<section class="related-heroes">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Autres Héros de la Même Catégorie</h2>
+        </div>
+        <div class="row g-4">
+            {% for related_hero in related_heroes %}
+            <div class="col-md-6 col-lg-3">
+                <div class="hero-card related-hero-card">
+                    <img src="{{ related_hero.image_url }}" alt="{{ related_hero.name }}" class="hero-card-img">
+                    <div class="hero-card-body">
+                        <h5 class="fw-bold">{{ related_hero.name }}</h5>
+                        <p class="text-muted small">{{ related_hero.country }} • {{ related_hero.era }}</p>
+                        <p class="text-muted small" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            {{ related_hero.bio }}
+                        </p>
+                        <a href="/hero/{{ related_hero.id }}" class="btn btn-sm btn-dark w-100 mt-3">
+                            <i class="fas fa-book me-1"></i>Lire la biographie
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Bouton Retour Flottant -->
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 99;">
+    <button class="btn btn-warning btn-lg rounded-circle" onclick="window.history.back()" style="width: 60px; height: 60px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Retour">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareOn(platform) {
+    const url = window.location.href;
+    const title = `{{ hero.name }} - Héros Africain`;
+    const text = `Découvrez {{ hero.name }}, un grand héros africain sur notre plateforme éducative!`;
+    
+    let shareUrl = '';
+    
+    if (platform === 'facebook') {
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    } else if (platform === 'twitter') {
+        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+    } else if (platform === 'linkedin') {
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+}
+
+// Utiliser l'API Web Share si disponible
+if (navigator.share) {
+    document.addEventListener('DOMContentLoaded', function() {
+        const shareBtn = document.querySelector('.share-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.share({
+                        title: '{{ hero.name }}',
+                        text: 'Découvrez ce grand héros africain',
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Erreur partage:', err);
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

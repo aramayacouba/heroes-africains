@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}Ajouter un Héros - Héros Africains{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-banner {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+        padding: 3rem 0;
+        border-bottom: 3px solid #FFD700;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 3rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    
+    .form-section {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+    }
+    
+    .form-section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .form-section-title i {
+        color: #FFD700;
+        font-size: 1.5rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .image-preview-container {
+        border: 2px dashed #FFD700;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        background: rgba(255, 215, 0, 0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .image-preview-container:hover {
+        background: rgba(255, 215, 0, 0.1);
+        border-color: #FFC700;
+    }
+    
+    .image-preview-container.has-image {
+        border-color: #06A77D;
+        background: rgba(6, 168, 125, 0.05);
+    }
+    
+    #imagePreview {
+        max-height: 350px;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .char-counter {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.3rem;
+    }
+    
+    .success-message {
+        background: linear-gradient(135deg, rgba(6, 168, 125, 0.1) 0%, rgba(6, 168, 125, 0.05) 100%);
+        border: 2px solid #06A77D;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        display: none;
+        animation: slideInDown 0.4s ease-out;
+    }
+    
+    .error-message {
+        background: linear-gradient(135deg, rgba(230, 57, 70, 0.1) 0%, rgba(230, 57, 70, 0.05) 100%);
+        border: 2px solid #E63946;
+        border-radius: 15px;
+        padding: 1.5rem;
+        display: none;
+        animation: slideInDown 0.4s ease-out;
+    }
+    
+    .progress-bar-custom {
+        height: 4px;
+        background: #e9ecef;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #FFD700, #FF6B35);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    .required-field::after {
+        content: ' *';
+        color: #E63946;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Banner -->
+<section class="form-banner">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-plus-circle me-3 text-warning"></i>Ajouter un Nouveau Héros
+                </h1>
+                <p class="lead text-muted">
+                    Partagez l'histoire d'un grand héros africain avec notre communauté éducative
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <i class="fas fa-user-plus" style="font-size: 5rem; color: rgba(255, 215, 0, 0.2);"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contenu Principal -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Barre de progression -->
+                <div class="progress-bar-custom">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <!-- Message de succès -->
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle" style="font-size: 3rem; color: #06A77D; display: block; margin-bottom: 1rem;"></i>
+                    <h3 class="fw-bold text-success mb-2">Héros ajouté avec succès!</h3>
+                    <p class="text-muted mb-3">Merci de votre contribution à la valorisation de nos héros africains.</p>
+                    <a href="#" id="viewHeroLink" class="btn btn-success">
+                        <i class="fas fa-eye me-2"></i>Voir le héros
+                    </a>
+                    <a href="/" class="btn btn-outline-dark ms-2">
+                        <i class="fas fa-home me-2"></i>Retour à l'accueil
+                    </a>
+                </div>
+
+                <!-- Message d'erreur -->
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-circle" style="font-size: 1.5rem; color: #E63946; margin-right: 0.8rem;"></i>
+                    <strong>Erreur!</strong> <span id="errorText"></span>
+                </div>
+
+                <!-- Formulaire -->
+                <div class="form-card" id="addHeroForm">
+                    <form id="heroForm" enctype="multipart/form-data">
+                        <!-- Section 1: Identité -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-user-circle"></i>
+                                Identité du Héros
+                            </div>
+                            
+                            <div class="form-row">
+                                <div>
+                                    <label class="form-label required-field">Nom du héros</label>
+                                    <input type="text" class="form-control form-control-lg" name="name" required placeholder="Ex: Kwame Nkrumah" maxlength="150">
+                                    <small class="form-text text-muted">Nom complet du héros africain</small>
+                                </div>
+                                <div>
+                                    <label class="form-label required-field">Pays d'origine</label>
+                                    <input type="text" class="form-control form-control-lg" name="country" required placeholder="Ex: Ghana" maxlength="100">
+                                    <small class="form-text text-muted">Pays ou région actuelle</small>
+                                </div>
+                            </div>
+
+                            <div class="form-row mt-3">
+                                <div>
+                                    <label class="form-label required-field">Époque</label>
+                                    <input type="text" class="form-control form-control-lg" name="era" required placeholder="Ex: XXe siècle (1909-1972)" maxlength="100">
+                                    <small class="form-text text-muted">Période historique active</small>
+                                </div>
+                                <div>
+                                    <label class="form-label required-field">Catégorie</label>
+                                    <select class="form-select form-select-lg" name="category_id" required>
+                                        <option value="">-- Sélectionnez une catégorie --</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.icon }} {{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">Domaine principal du héros</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Dates -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-calendar-alt"></i>
+                                Informations Temporelles
+                            </div>
+                            
+                            <div class="form-row">
+                                <div>
+                                    <label class="form-label">Année de naissance</label>
+                                    <input type="number" class="form-control form-control-lg" name="birth_year" placeholder="1909" min="1000" max="2025">
+                                    <small class="form-text text-muted">Année de naissance (optionnel)</small>
+                                </div>
+                                <div>
+                                    <label class="form-label">Année de décès</label>
+                                    <input type="number" class="form-control form-control-lg" name="death_year" placeholder="1972" min="1000" max="2025">
+                                    <small class="form-text text-muted">Année de décès (optionnel)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Contenu -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-book-open"></i>
+                                Biographie et Réalisations
+                            </div>
+                            
+                            <div>
+                                <label class="form-label required-field">Biographie complète</label>
+                                <textarea class="form-control" name="bio" required placeholder="Décrivez en détail la vie, les contributions et l'impact du héros..." rows="6" maxlength="2000"></textarea>
+                                <div class="char-counter">
+                                    <span id="bioCount">0</span>/2000 caractères
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="form-label">Réalisations et Contributions</label>
+                                <textarea class="form-control" name="achievements" placeholder="Listez les réalisations principales (une par ligne)&#10;Ex: Indépendance du Ghana (1957)&#10;Fondateur du Panafricanisme&#10;Réformes éducatives majeures" rows="5" maxlength="1000"></textarea>
+                                <small class="form-text text-muted">Entrez une réalisation par ligne. Maximum 1000 caractères.</small>
+                                <div class="char-counter">
+                                    <span id="achievCount">0</span>/1000 caractères
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Image -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-image"></i>
+                                Image du Héros
+                            </div>
+                            
+                            <label class="form-label">URL de l'image</label>
+                            <input type="url" class="form-control form-control-lg mb-3" name="image_url" placeholder="https://exemple.com/image.jpg">
+                            <small class="form-text text-muted d-block mb-3">Fournissez une URL directe vers une image du héros (PNG, JPG, WEBP)</small>
+                            
+                            <div class="image-preview-container" id="imagePreviewContainer">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #FFD700; display: block; margin-bottom: 1rem;"></i>
+                                <p class="text-muted mb-0">L'aperçu de l'image s'affichera ici</p>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg fw-bold">
+                                <i class="fas fa-paper-plane me-2"></i>Soumettre le Héros
+                            </button>
+                            <a href="/" class="btn btn-outline-dark btn-lg">
+                                <i class="fas fa-times me-2"></i>Annuler
+                            </a>
+                        </div>
+
+                        <p class="text-center text-muted mt-3 small">
+                            <i class="fas fa-lock me-1"></i>Vos données sont sécurisées et utilisées uniquement pour améliorer notre plateforme.
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Compteur de caractères
+const bioField = document.querySelector('textarea[name="bio"]');
+const achievField = document.querySelector('textarea[name="achievements"]');
+const bioCount = document.getElementById('bioCount');
+const achievCount = document.getElementById('achievCount');
+
+bioField.addEventListener('input', function() {
+    bioCount.textContent = this.value.length;
+    updateProgress();
+});
+
+achievField.addEventListener('input', function() {
+    achievCount.textContent = this.value.length;
+    updateProgress();
+});
+
+// Aperçu de l'image
+const imageUrlInput = document.querySelector('input[name="image_url"]');
+const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+imageUrlInput.addEventListener('input', function(e) {
+    const url = e.target.value;
+    if (url) {
+        let img = document.getElementById('imagePreview');
+        if (img) img.remove();
+        
+        img = document.createElement('img');
+        img.id = 'imagePreview';
+        img.src = url;
+        img.onerror = function() {
+            imagePreviewContainer.classList.remove('has-image');
+            imagePreviewContainer.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #E63946; display: block; margin-bottom: 1rem;"></i><p class="text-danger">Erreur de chargement de l\'image</p>';
+        };
+        img.onload = function() {
+            imagePreviewContainer.classList.add('has-image');
+            imagePreviewContainer.innerHTML = '';
+            imagePreviewContainer.appendChild(img);
+        };
+    } else {
+        imagePreviewContainer.classList.remove('has-image');
+        imagePreviewContainer.innerHTML = '<i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #FFD700; display: block; margin-bottom: 1rem;"></i><p class="text-muted mb-0">L\'aperçu de l\'image s\'affichera ici</p>';
+    }
+    updateProgress();
+});
+
+// Mettre à jour la barre de progression
+function updateProgress() {
+    const form = document.getElementById('heroForm');
+    const inputs = form.querySelectorAll('input[required], textarea[required], select[required]');
+    let filled = 0;
+    
+    inputs.forEach(input => {
+        if (input.value.trim() !== '') {
+            filled++;
+        }
+    });
+    
+    const percentage = (filled / inputs.length) * 100;
+    document.getElementById('progressFill').style.width = percentage + '%';
+}
+
+// Soumission du formulaire
+document.getElementById('heroForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    try {
+        const response = await fetch('/add-hero', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('addHeroForm').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('viewHeroLink').href = '/hero/' + data.hero_id;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        } else {
+            throw new Error(data.error || 'Une erreur est survenue');
+        }
+    } catch (error) {
+        document.getElementById('errorMessage').style.display = 'block';
+        document.getElementById('errorText').textContent = error.message;
+        window.scrollTo({top: 200, behavior: 'smooth'});
+    }
+});
+
+// Initialiser la barre de progression
+updateProgress();
+</script>
+{% endblock %}

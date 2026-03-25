@@ -1,0 +1,151 @@
+# version: '3.9'
+
+services:
+  # ============================================
+  # BASE DE DONNÉES POSTGRESQL
+  # ============================================
+  db:
+    image: postgres:15-alpine
+    container_name: heroes_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - heroes_network
+    restart: unless-stopped
+
+  # ============================================
+  # APPLICATION FLASK
+  # ============================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: heroes_app
+    environment:
+      FLASK_APP: ${FLASK_APP}
+      FLASK_ENV: ${FLASK_ENV}
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./app/static/images/heroes:/app/app/static/images/heroes
+    networks:
+      - heroes_network
+    restart: unless-stopped
+
+  # ============================================
+  # PROMETHEUS - MONITORING
+  # ============================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: heroes_prometheus
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - heroes_network
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  # ============================================
+  # GRAFANA - DASHBOARDS
+  # ============================================
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: heroes_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: ${GF_SERVER_ROOT_URL}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - heroes_network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ============================================
+  # PGADMIN - INTERFACE GRAPHIQUE POSTGRESQL ⭐
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: heroes_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/pgadmin_servers.json:/pgadmin4/servers.json
+    networks:
+      - heroes_network
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # ============================================
+  # POSTGRES EXPORTER - METRICS POUR PROMETHEUS
+  # ============================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: heroes_postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - heroes_network
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  heroes_network:
+    driver: bridge

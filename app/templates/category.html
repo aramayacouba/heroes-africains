@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - Héros Africains{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-banner {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+        padding: 3rem 0;
+        border-bottom: 3px solid #FFD700;
+    }
+    
+    .filters-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+    }
+    
+    .no-results i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .sort-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .sort-btn.active {
+        background: linear-gradient(135deg, #FFD700, #FFC700);
+        color: #1a1a1a;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Fil d'Ariane -->
+<nav aria-label="breadcrumb" class="py-3" style="background: white; border-bottom: 1px solid #f0f0f0;">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Accueil</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+        </ol>
+    </div>
+</nav>
+
+<!-- Catégorie Banner -->
+<section class="category-banner">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="font-size: 4rem;">{{ category.icon }}</div>
+                    <div>
+                        <h1 class="display-4 fw-bold mb-2">{{ category.name }}</h1>
+                        <p class="lead text-muted mb-0">{{ category.description }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <div class="bg-white p-4 rounded-3" style="box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                    <h3 class="fw-bold text-warning mb-1">{{ heroes|length }}</h3>
+                    <p class="text-muted mb-0">Héros dans cette catégorie</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filtres et Tri -->
+<section class="py-5">
+    <div class="container">
+        <div class="filters-section">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-search text-warning me-2"></i>Rechercher
+                    </label>
+                    <input type="text" class="form-control form-control-lg" id="searchFilter" placeholder="Tapez un nom, pays, époque..." onkeyup="filterAndSort()">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-sort text-warning me-2"></i>Trier par
+                    </label>
+                    <select class="form-select form-select-lg" id="sortFilter" onchange="filterAndSort()">
+                        <option value="recent">Les plus récents</option>
+                        <option value="name">Nom (A-Z)</option>
+                        <option value="views">Popularité</option>
+                        <option value="country">Pays</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grille des Héros -->
+        <div id="heroesGrid" class="hero-grid">
+            {% for hero in heroes %}
+            <div class="hero-item" data-name="{{ hero.name.lower() }}" data-country="{{ hero.country.lower() }}" data-views="{{ hero.views }}">
+                <div class="hero-card h-100">
+                    <div style="position: relative;">
+                        <img src="{{ hero.image_url }}" alt="{{ hero.name }}" class="hero-card-img">
+                        <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                            <span class="badge bg-warning text-dark" style="box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);">
+                                <i class="fas fa-eye me-1"></i>{{ hero.views }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hero-card-body">
+                        <h5 class="fw-bold">{{ hero.name }}</h5>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ hero.country }}
+                            </small>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>{{ hero.era }}
+                            </small>
+                        </div>
+
+                        <p class="text-muted small" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 2.8em;">
+                            {{ hero.bio }}
+                        </p>
+
+                        <!-- Années -->
+                        {% if hero.birth_year or hero.death_year %}
+                        <div class="mb-3">
+                            <small class="text-muted" style="background: #f8f9fa; padding: 0.4rem 0.8rem; border-radius: 8px; display: inline-block;">
+                                {% if hero.birth_year and hero.death_year %}
+                                    ({{ hero.birth_year }}-{{ hero.death_year }})
+                                {% elif hero.birth_year %}
+                                    (Né en {{ hero.birth_year }})
+                                {% elif hero.death_year %}
+                                    (Décédé en {{ hero.death_year }})
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+
+                        <!-- Bouton -->
+                        <a href="/hero/{{ hero.id }}" class="btn btn-dark btn-sm w-100 mt-auto">
+                            <i class="fas fa-book me-1"></i>Lire la biographie
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Message si aucun héros -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <i class="fas fa-search"></i>
+            <h3 class="text-muted">Aucun héros ne correspond à votre recherche</h3>
+            <p class="text-muted">Essayez d'autres mots-clés ou visitez une autre catégorie</p>
+            <a href="/" class="btn btn-warning mt-3">
+                <i class="fas fa-home me-2"></i>Retour à l'accueil
+            </a>
+        </div>
+
+        {% if not heroes %}
+        <div class="no-results">
+            <i class="fas fa-inbox"></i>
+            <h3 class="text-muted">Aucun héros dans cette catégorie pour le moment</h3>
+            <a href="/add-hero" class="btn btn-warning mt-3">
+                <i class="fas fa-plus me-2"></i>Ajouter un héros
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterAndSort() {
+    const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+    const sortBy = document.getElementById('sortFilter').value;
+    const heroItems = document.querySelectorAll('.hero-item');
+    const grid = document.getElementById('heroesGrid');
+    
+    // Filtrer
+    let visibleItems = [];
+    heroItems.forEach(item => {
+        const heroName = item.dataset.name;
+        const heroCountry = item.dataset.country;
+        
+        if (heroName.includes(searchTerm) || heroCountry.includes(searchTerm)) {
+            item.style.display = '';
+            visibleItems.push(item);
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    // Trier
+    visibleItems.sort((a, b) => {
+        const nameA = a.dataset.name;
+        const nameB = b.dataset.name;
+        const viewsA = parseInt(a.dataset.views);
+        const viewsB = parseInt(b.dataset.views);
+        
+        switch(sortBy) {
+            case 'name':
+                return nameA.localeCompare(nameB);
+            case 'views':
+                return viewsB - viewsA;
+            case 'country':
+                return a.dataset.country.localeCompare(b.dataset.country);
+            default:
+                return 0;
+        }
+    });
+    
+    // Réorganiser
+    visibleItems.forEach(item => grid.appendChild(item));
+    
+    // Afficher message si aucun résultat
+    const noResults = document.getElementById('noResults');
+    if (visibleItems.length === 0) {
+        noResults.style.display = 'block';
+    } else {
+        noResults.style.display = 'none';
+    }
+}
+
+// Ajouter animation fadeIn
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .hero-item {
+        animation: fadeIn 0.3s ease-in;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{
+	"ulid": "01KM65RK7118AJKVK5XDV17JDF",
+	"minTime": 1774017169715,
+	"maxTime": 1774022400000,
+	"stats": {
+		"numSamples": 177517,
+		"numFloatSamples": 177517,
+		"numSeries": 939,
+		"numChunks": 988
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KM65RK7118AJKVK5XDV17JDF"
+		]
+	},
+	"version": 1
+}

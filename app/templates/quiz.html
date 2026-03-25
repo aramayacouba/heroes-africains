@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Interactif - Héros Africains{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quiz-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .quiz-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        padding: 2.5rem;
+        margin: 2rem auto;
+        animation: slideInUp 0.5s ease-out;
+    }
+    
+    .quiz-progress {
+        height: 10px;
+        background: #e9ecef;
+        border-radius: 10px;
+        margin: 1.5rem 0;
+        overflow: hidden;
+    }
+    
+    .quiz-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #FFD700, #FF6B35);
+        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 10px;
+    }
+    
+    .start-section {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+    
+    .mode-selection {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+    
+    .mode-btn {
+        padding: 1.5rem 2.5rem;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        display: inline-block;
+    }
+    
+    .mode-btn.active {
+        background: linear-gradient(135deg, #FFD700, #FFC700);
+        border-color: #FFD700;
+        color: #1a1a1a;
+        box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+    }
+    
+    .mode-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        border-color: #FFD700;
+    }
+    
+    .difficulty-selection {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .difficulty-btn {
+        padding: 1rem 2rem;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        min-width: 150px;
+        display: inline-block;
+    }
+    
+    .difficulty-btn.active {
+        background: linear-gradient(135deg, #FFD700, #FFC700);
+        border-color: #FFD700;
+        color: #1a1a1a;
+        box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+    }
+    
+    .difficulty-btn:hover {
+        transform: translateY(-3px);
+        border-color: #FFD700;
+    }
+    
+    .quiz-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .quiz-option {
+        padding: 1.5rem;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1rem;
+    }
+    
+    .quiz-option:hover:not(.disabled) {
+        border-color: #FFD700;
+        transform: translateX(8px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .quiz-option.selected {
+        border-color: #0066CC;
+        background: rgba(0, 102, 204, 0.05);
+    }
+    
+    .quiz-option.correct {
+        border-color: #06A77D;
+        background: rgba(6, 168, 125, 0.08);
+        color: #06A77D;
+    }
+    
+    .quiz-option.incorrect {
+        border-color: #E63946;
+        background: rgba(230, 57, 70, 0.08);
+        color: #E63946;
+    }
+    
+    .quiz-option.disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .option-label {
+        width: 40px;
+        height: 40px;
+        background: #f0f0f0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    
+    .quiz-option.selected .option-label {
+        background: #0066CC;
+        color: white;
+    }
+    
+    .quiz-option.correct .option-label {
+        background: #06A77D;
+        color: white;
+    }
+    
+    .quiz-option.incorrect .option-label {
+        background: #E63946;
+        color: white;
+    }
+    
+    .hero-info {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+        padding: 1.5rem;
+        border-left: 4px solid #FFD700;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .hero-info i {
+        font-size: 1.5rem;
+        color: #FFD700;
+        flex-shrink: 0;
+    }
+    
+    .question-text {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 107, 53, 0.02) 100%);
+        border-left: 5px solid #FFD700;
+        border-radius: 10px;
+    }
+    
+    .score-display {
+        font-size: 4.5rem;
+        font-weight: 700;
+        margin: 1.5rem 0;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    .stat-box {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        flex: 1;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+    
+    .stat-box.active {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+        border-color: #FFD700;
+    }
+    
+    .stat-box h4 {
+        font-size: 1.8rem;
+        color: #FFD700;
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .stat-box p {
+        color: #6c757d;
+        margin: 0.3rem 0 0 0;
+        font-size: 0.85rem;
+    }
+    
+    .quiz-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .quiz-header .stats {
+        display: flex;
+        justify-content: space-around;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .duo-waiting-content {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .duo-game-code {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #FFD700;
+        font-family: 'Courier New', monospace;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 2rem 0;
+        letter-spacing: 3px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+    
+    .action-buttons .btn {
+        min-width: 200px;
+    }
+    
+    .podium-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 2rem;
+        margin: 3rem 0;
+        flex-wrap: wrap;
+        min-height: 400px;
+    }
+    
+    .duo-players-display {
+        display: flex;
+        justify-content: space-around;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .duo-player-badge {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 2px solid #FFD700;
+        text-align: center;
+        min-width: 150px;
+        animation: pulse 0.5s ease-in-out;
+    }
+    
+    .duo-player-badge strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+    
+    .duo-player-badge .score {
+        font-size: 1.3rem;
+        color: #FFD700;
+        font-weight: 700;
+    }
+    
+    .result-item {
+        display: flex;
+        align-items: start;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 4px solid #e9ecef;
+    }
+    
+    .result-item.correct {
+        background: rgba(6, 168, 125, 0.08);
+        border-left-color: #06A77D;
+    }
+    
+    .result-item.incorrect {
+        background: rgba(230, 57, 70, 0.08);
+        border-left-color: #E63946;
+    }
+    
+    .result-item i {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+    }
+    
+    .result-item.correct i {
+        color: #06A77D;
+    }
+    
+    .result-item.incorrect i {
+        color: #E63946;
+    }
+    
+    @media (max-width: 768px) {
+        .quiz-options {
+            grid-template-columns: 1fr;
+        }
+        
+        .quiz-card {
+            padding: 1.5rem;
+        }
+        
+        .mode-selection,
+        .difficulty-selection {
+            flex-direction: column;
+        }
+        
+        .mode-btn,
+        .difficulty-btn {
+            width: 100%;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+    
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .alert-custom {
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    .alert-success {
+        background: rgba(6, 168, 125, 0.1);
+        color: #06A77D;
+        border: 2px solid #06A77D;
+    }
+    
+    .alert-error {
+        background: rgba(230, 57, 70, 0.1);
+        color: #E63946;
+        border: 2px solid #E63946;
+    }
+    
+    .alert-info {
+        background: rgba(0, 102, 204, 0.1);
+        color: #0066CC;
+        border: 2px solid #0066CC;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%); min-height: 90vh;">
+    <div class="quiz-container">
+        <!-- Section de démarrage -->
+        <div id="startSection" class="quiz-card">
+            <div class="start-section">
+                <i class="fas fa-brain" style="font-size: 5rem; color: #FFD700; margin-bottom: 1.5rem; display: block;"></i>
+                <h2 class="fw-bold">Quiz Interactif - Héros Africains</h2>
+                <p class="mt-3 text-muted">Testez vos connaissances et défiez d'autres joueurs!</p>
+                
+                <!-- Sélection du mode -->
+                <div class="mode-selection mt-4">
+                    <button type="button" class="mode-btn active" data-mode="solo" onclick="handleModeSelection(this, 'solo')">
+                        <i class="fas fa-user me-2"></i>Mode Solo
+                    </button>
+                    <button type="button" class="mode-btn" data-mode="duo" onclick="handleModeSelection(this, 'duo')">
+                        <i class="fas fa-users me-2"></i>Mode Duo
+                    </button>
+                </div>
+                
+                <!-- Sélection de la difficulté (pour Solo) -->
+                <div id="difficultySection" style="display: block;">
+                    <p class="text-muted mt-3 mb-3">Choisissez votre niveau de difficulté:</p>
+                    <div class="difficulty-selection">
+                        <button type="button" class="difficulty-btn easy" onclick="handleDifficultySelection(this, 'easy')">
+                            <i class="fas fa-leaf me-2"></i>Facile
+                        </button>
+                        <button type="button" class="difficulty-btn medium active" onclick="handleDifficultySelection(this, 'medium')">
+                            <i class="fas fa-star me-2"></i>Moyen
+                        </button>
+                        <button type="button" class="difficulty-btn hard" onclick="handleDifficultySelection(this, 'hard')">
+                            <i class="fas fa-fire me-2"></i>Difficile
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-warning btn-lg fw-bold mt-4" id="soloStartBtn" onclick="startSoloQuiz()" style="min-width: 250px;">
+                        <i class="fas fa-play-circle me-2"></i>Démarrer le Quiz Solo
+                    </button>
+                </div>
+                
+                <!-- Boutons d'action (pour Duo) -->
+                <div id="duoActionSection" style="display: none;">
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-warning btn-lg fw-bold" onclick="createDuoGame()">
+                            <i class="fas fa-plus-circle me-2"></i>Créer une Partie
+                        </button>
+                        <button type="button" class="btn btn-info btn-lg fw-bold" onclick="joinDuoGamePrompt()">
+                            <i class="fas fa-sign-in-alt me-2"></i>Rejoindre une Partie
+                        </button>
+                    </div>
+                </div>
+                
+                <p class="text-muted mt-4 small">
+                    <i class="fas fa-info-circle me-1"></i>Vous aurez des questions en temps réel. Répondez correctement pour augmenter votre score!
+                </p>
+            </div>
+        </div>
+
+<!-- Section du quiz solo -->
+<div id="quizSection" class="quiz-card" style="display: none;">
+    <div class="quiz-header">
+        <h3 class="fw-bold mb-2">
+            <i class="fas fa-brain text-warning me-2"></i>Quiz en Cours
+        </h3>
+        <div class="stats">
+            <div class="stat-box active">
+                <p>Question</p>
+                <h4><span id="currentQuestion">1</span>/<span id="totalQuestions">5</span></h4>
+            </div>
+            <div class="stat-box">
+                <p>Score</p>
+                <h4 id="currentScore" style="color: #06A77D;">0</h4>
+            </div>
+            <div class="stat-box">
+                <p>Difficulté</p>
+                <h4 id="difficultyDisplay" style="color: #0066CC;">Moyen</h4>
+            </div>
+        </div>
+        <div class="quiz-progress">
+            <div class="quiz-progress-bar" id="progressBar" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <!-- ✅ AJOUTER CE CONTENEUR MANQUANT -->
+    <div id="questionContainer"></div>
+
+    <div class="text-center mt-4">
+        <button type="button" class="btn btn-outline-dark" onclick="leaveQuiz()">
+            <i class="fas fa-times me-2"></i>Quitter
+        </button>
+    </div>
+</div>
+
+        <!-- Section du jeu duo en attente -->
+        <div id="duoWaitingSection" class="quiz-card" style="display: none;">
+            <div class="duo-waiting-content">
+                <i class="fas fa-hourglass-start" style="font-size: 4rem; color: #FFD700; margin-bottom: 1.5rem; display: block;"></i>
+                <h3 class="fw-bold">En Attente d'un Adversaire</h3>
+                <p class="text-muted mt-2">Partage ce code avec un ami</p>
+                <div class="duo-game-code" id="duoGameCode">XXXXX</div>
+                <p class="text-muted small mt-3">
+                    <i class="fas fa-info-circle me-1"></i>La partie démarrera dès qu'un adversaire rejoint
+                </p>
+                <button type="button" class="btn btn-outline-dark mt-4" onclick="leaveQuiz()">
+                    <i class="fas fa-times me-2"></i>Annuler
+                </button>
+            </div>
+        </div>
+
+<!-- Section du jeu duo en cours -->
+<div id="duoGameSection" class="quiz-card" style="display: none;">
+    <div class="quiz-header">
+        <h3 class="fw-bold mb-2">
+            <i class="fas fa-gamepad text-warning me-2"></i>Duel en Temps Réel
+        </h3>
+        <div class="quiz-progress">
+            <div class="quiz-progress-bar" id="duoProgressBar" style="width: 0%;"></div>
+        </div>
+        <p class="text-muted small mt-2">
+            Question <span id="duoCurrentQuestion">1</span>/<span id="duoTotalQuestions">5</span>
+        </p>
+    </div>
+
+    <!-- Affichage des joueurs -->
+    <div id="duoPlayersDisplay" style="
+        display: flex;
+        justify-content: space-around;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    ">
+        <!-- Les joueurs seront ajoutés ici -->
+    </div>
+
+    <!-- Question et options -->
+    <div id="duoQuestionContainer"></div>
+
+    <!-- Bouton quitter -->
+    <div class="text-center mt-4">
+        <button type="button" class="btn btn-outline-dark" onclick="leaveQuiz()">
+            <i class="fas fa-times me-2"></i>Quitter
+        </button>
+    </div>
+</div>
+        <!-- Section du podium -->
+        <div id="duoPodiumSection" class="quiz-card" style="display: none;">
+            <div class="text-center mb-4">
+                <i class="fas fa-trophy" style="font-size: 4rem; color: #FFD700; margin-bottom: 1rem; display: block;"></i>
+                <h2 class="fw-bold">Résultats Finaux!</h2>
+            </div>
+            
+            <div class="podium-container" id="duoPodium"></div>
+
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-warning btn-lg me-2" onclick="location.reload()">
+                    <i class="fas fa-redo me-2"></i>Rejouer
+                </button>
+                <a href="/" class="btn btn-outline-dark btn-lg">
+                    <i class="fas fa-home me-2"></i>Accueil
+                </a>
+            </div>
+        </div>
+
+        <!-- Section des résultats solo -->
+        <div id="resultsSection" class="quiz-card" style="display: none;">
+            <div class="text-center mb-4">
+                <i class="fas fa-trophy" style="font-size: 4rem; color: #FFD700; margin-bottom: 1rem; display: block;"></i>
+                <h2 class="fw-bold">Quiz Terminé!</h2>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #FFD700, #FF6B35); color: white; padding: 2rem; border-radius: 15px; text-align: center; margin-bottom: 2rem; box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);">
+                <p style="font-size: 1.1rem; margin: 0;">Score Final</p>
+                <div class="score-display" id="finalScore">0/5</div>
+                <div style="font-size: 2.5rem; margin: 1rem 0;" id="finalPercentage">0%</div>
+                <div style="font-size: 1.1rem;" id="scoreMessage">Excellent travail!</div>
+            </div>
+
+            <div style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 2rem;">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-list me-2 text-warning"></i>Détail des Réponses
+                </h4>
+                <div id="detailedResults"></div>
+            </div>
+
+            <div class="text-center">
+                <button type="button" class="btn btn-warning btn-lg me-2" onclick="location.reload()">
+                    <i class="fas fa-redo me-2"></i>Rejouer
+                </button>
+                <a href="/" class="btn btn-outline-dark btn-lg">
+                    <i class="fas fa-home me-2"></i>Accueil
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ========================================
+// GESTION DU MODE
+// ========================================
+
+function handleModeSelection(button, mode) {
+    console.log('Mode sélectionné:', mode);
+    
+    quizState.mode = mode;
+    
+    // Mettre à jour le style des boutons
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    
+    // Afficher/masquer les sections appropriées
+    const difficultySection = document.getElementById('difficultySection');
+    const duoActionSection = document.getElementById('duoActionSection');
+    
+    if (mode === 'solo') {
+        difficultySection.style.display = 'block';
+        duoActionSection.style.display = 'none';
+    } else {
+        difficultySection.style.display = 'none';
+        duoActionSection.style.display = 'block';
+    }
+}
+
+// ========================================
+// GESTION DE LA DIFFICULTÉ
+// ========================================
+
+function handleDifficultySelection(button, difficulty) {
+    console.log('Difficulté sélectionnée:', difficulty);
+    
+    quizState.difficulty = difficulty;
+    
+    // Mettre à jour le style des boutons
+    document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+}
+
+// ========================================
+// DÉMARRAGE DU QUIZ SOLO
+// ========================================
+
+function startSoloQuiz() {
+    console.log('🎯 Démarrage du quiz solo');
+    
+    if (!quizState.sessionId) {
+        quizState.sessionId = generateSessionId();
+    }
+    
+    quizState.isRunning = true;
+    
+    console.log('Émission start_quiz avec:', {
+        session_id: quizState.sessionId,
+        difficulty: quizState.difficulty
+    });
+    
+    socket.emit('start_quiz', {
+        session_id: quizState.sessionId,
+        difficulty: quizState.difficulty
+    });
+}
+
+// ========================================
+// FONCTIONS DUO
+// ========================================
+
+function createDuoGame() {
+    console.log('🎮 Création d\'une partie duo');
+    
+    const playerName = prompt('Quel est votre pseudo?') || `Joueur_${Math.random().toString(36).substr(2, 5)}`;
+    
+    if (!playerName) {
+        showAlert('Veuillez entrer un pseudo', 'error');
+        return;
+    }
+    
+    duoGameState.playerName = playerName;
+    
+    console.log('Émission create_duo_game avec:', {
+        difficulty: quizState.difficulty,
+        player_name: playerName
+    });
+    
+    socket.emit('create_duo_game', {
+        difficulty: quizState.difficulty,
+        player_name: playerName
+    });
+}
+
+function joinDuoGamePrompt() {
+    console.log('👥 Tentative de rejoindre une partie');
+    
+    const gameCode = prompt('Entrez le code de la partie:')?.toUpperCase();
+    if (!gameCode) {
+        showAlert('Opération annulée', 'info');
+        return;
+    }
+    
+    const playerName = prompt('Quel est votre pseudo?') || `Joueur_${Math.random().toString(36).substr(2, 5)}`;
+    
+    if (!playerName) {
+        showAlert('Veuillez entrer un pseudo', 'error');
+        return;
+    }
+    
+    console.log('Émission join_duo_game avec:', {
+        game_id: gameCode,
+        player_name: playerName
+    });
+    
+    socket.emit('join_duo_game', {
+        game_id: gameCode,
+        player_name: playerName
+    });
+}
+
+// ========================================
+// UTILITAIRES
+// ========================================
+
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert-custom alert-${type}`;
+    alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <div>${message}</div>
+    `;
+    
+    // Ajouter à l'écran
+    if (document.body.firstChild) {
+        document.body.insertBefore(alertDiv, document.body.firstChild);
+    } else {
+        document.body.appendChild(alertDiv);
+    }
+    
+    // Style pour l'alerte flottante
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    setTimeout(() => {
+        alertDiv.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => alertDiv.remove(), 300);
+    }, 4000);
+}
+
+function leaveQuiz() {
+    if (confirm('Êtes-vous sûr de vouloir quitter?')) {
+        location.reload();
+    }
+}
+</script>
+
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}
