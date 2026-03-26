@@ -4,7 +4,7 @@
 # ============================================
 
 # 🔵 ÉTAPE 1: Construction et dépendances
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 LABEL maintainer="DevNet Team"
 LABEL description="Plateforme Héros Africains - Backend Flask"
