@@ -13,7 +13,7 @@
 - 📊 Monitorer les performances via Prometheus/Grafana
 - 🌐 Échanger via API REST distribuée
 
----
+---no
 
 ## 🏗️ 2. ARCHITECTURE DU SYSTÈME
 

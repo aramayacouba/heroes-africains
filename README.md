@@ -1,422 +1,441 @@
-# 🌍 Plateforme Numérique de Valorisation des Héros Africains
-
-Une application web éducative moderne pour découvrir, apprendre et partager l'histoire des grands héros africains.
-
-![License](https://img.shields.io/badge/license-MIT-green)
-![Python](https://img.shields.io/badge/python-3.11-blue)
-![Flask](https://img.shields.io/badge/flask-2.3-white)
-![Docker](https://img.shields.io/badge/docker-latest-blue)
-
-## 🎯 Objectif du Projet
-
-Cette plateforme vise à :
-- ✅ Valoriser les contributions des héros africains à l'histoire mondiale
-- ✅ Fournir une ressource éducative interactive et attrayante
-- ✅ Intégrer des technologies modernes (Flask, Docker, WebSockets, Monitoring)
-- ✅ Démontrer l'utilisation de réseaux Docker pour la communication inter-services
-- ✅ Mettre en œuvre un système de monitoring en temps réel
-
-## 🏗️ Architecture du Système
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Utilisateurs Finaux                      │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-        ▼                ▼                ▼
-   ┌────────┐       ┌────────┐      ┌─────────┐
-   │ Web UI │       │ API    │      │ WebSocket│
-   │(Flask) │◄─────►│(REST)  │      │(SocketIO)│
-   └────────┘       └────────┘      └─────────┘
-        │                │                │
-        └────────────────┼────────────────┘
-                         │
-          ┌──────────────▼──────────────┐
-          │   Docker Network Bridge     │
-          └──────────────┬──────────────┘
-                         │
-          ┌──────────────┼──────────────┐
-          │              │              │
-          ▼              ▼              ▼
-     ┌─────────┐    ┌──────────┐   ┌──────────┐
-     │PostgreSQL│    │Prometheus│   │ Grafana  │
-     │Database  │    │Metrics   │   │Dashboard │
-     └─────────┘    └──────────┘   └──────────┘
-```
-
-## 🚀 Démarrage Rapide
-
-### Prérequis
-
-- Docker Desktop (3.0+)
-- Python 3.9+ (pour développement local)
-- Git
-- VS Code (recommandé)
-
-### Installation et Lancement
-
-#### 1️⃣ Cloner le Dépôt
-```bash
-git clone https://github.com/pjdevnet/devnet-projet.git
-cd heroes_africains
-```
-
-#### 2️⃣ Lancer avec Docker Compose
-```bash
-docker-compose up --build
-```
-
-#### 3️⃣ Accéder à l'Application
-- **Application Web**: http://localhost:5000
-- **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3000 (Admin: admin/admin)
-
-#### 4️⃣ Arrêter les Conteneurs
-```bash
-docker-compose down
-```
-
-## 📊 Structure du Projet
-
-```
-heroes_africains/
-├── app/
-│   ├── __init__.py              # Initialisation Flask & extensions
-│   ├── models.py                # Modèles SQLAlchemy (Hero, Category, Quiz)
-│   ├── routes.py                # Routes principales
-│   ├── api.py                   # Endpoints API REST
-│   ├── socketio_events.py       # Événements WebSocket temps réel
-│   ├── templates/               # Templates HTML Jinja2
-│   │   ├── base.html            # Template de base
-│   │   ├── index.html           # Page d'accueil
-│   │   ├── hero_detail.html     # Détail d'un héros
-│   │   ├── category.html        # Listing par catégorie
-│   │   ├── add_hero.html        # Formulaire ajout héros
-│   │   └── quiz.html            # Page interactive du quiz
-│   └── static/                  # Ressources statiques
-│       ├── css/
-│       │   └── style.css        # Styles CSS personnalisés
-│       ├── js/
-│       │   ├── script.js        # JS global
-│       │   └── quiz.js          # Logique du quiz
-│       └── images/              # Images
-│
-├── docker/
-│   ├── Dockerfile               # Image Flask
-│   ├── prometheus.yml           # Configuration Prometheus
-│   └── grafana/
-│       └── provisioning/        # Configuration Grafana
-│
-├── config.py                    # Configuration (DB, environment)
-├── run.py                       # Point d'entrée application
-├── requirements.txt             # Dépendances Python
-├── docker-compose.yml           # Orchestration services
-└── README.md                    # Cette documentation
-```
-
-## 🗄️ Modèles de Données
-
-### Hero (Héros)
-```python
-- id: Integer (PK)
-- name: String(150) - Nom unique
-- country: String(100)
-- era: String(100)
-- category_id: Integer (FK)
-- bio: Text - Biographie complète
-- image_url: String
-- achievements: Text
-- birth_year: Integer
-- death_year: Integer
-- views: Integer
-- created_at: DateTime
-```
-
-### Category (Catégories)
-```python
-- id: Integer (PK)
-- name: String(100)
-- description: Text
-- icon: String (emoji)
-- created_at: DateTime
-- heroes: Relationship
-```
-
-### QuizQuestion
-```python
-- id: Integer (PK)
-- hero_id: Integer (FK)
-- question: String(500)
-- option_a, b, c, d: String
-- correct_answer: String (A/B/C/D)
-- difficulty: String (easy/medium/hard)
-```
-
-### UserQuizScore
-```python
-- id: Integer (PK)
-- session_id: String (unique)
-- score: Integer
-- total_questions: Integer
-- percentage: Float
-- created_at: DateTime
-```
-
-## 🌐 API REST Endpoints
-
-### Héros
-```
-GET    /api/heroes                    # Lister tous les héros (paginátion)
-GET    /api/hero/<id>                # Détail d'un héros
-PUT    /api/hero/<id>                # Modifier un héros
-DELETE /api/hero/<id>                # Supprimer un héros
-```
-
-### Catégories
-```
-GET    /api/categories               # Lister les catégories
-```
-
-### Quiz
-```
-GET    /api/quiz-questions           # Lister les questions (pagination)
-```
-
-### Statistiques
-```
-GET    /api/stats                    # Statistiques globales
-```
-
-### Recherche
-```
-GET    /search?q=<query>             # Recherche tous les champs
-```
-
-## ⚡ Événements WebSocket (SocketIO)
-
-### Côté Client
-```javascript
-// Démarrer un quiz
-socket.emit('start_quiz', {
-    session_id: 'uuid',
-    difficulty: 'medium'
-});
-
-// Soumettre une réponse
-socket.emit('submit_answer', {
-    session_id: 'uuid',
-    answer: 'A'
-});
-
-// Obtenir le classement
-socket.emit('get_leaderboard');
-```
-
-### Côté Serveur
-```javascript
-// Quiz démarré
-socket.on('quiz_started', data => { ... });
-
-// Prochaine question
-socket.on('next_question', data => { ... });
-
-// Résultat de la réponse
-socket.on('answer_result', data => { ... });
-
-// Quiz complété
-socket.on('quiz_completed', data => { ... });
-
-// Données du classement
-socket.on('leaderboard_data', data => { ... });
-```
-
-## 📊 Monitoring avec Prometheus & Grafana
-
-### Métriques Collectées
-- Nombre total de requêtes HTTP
-- Temps de réponse moyen
-- Taux d'erreurs (4xx, 5xx)
-- Activité SocketIO en temps réel
-- Latence des requêtes à la base de données
-- Nombre de connexions actives
-
-### Accès Grafana
-1. Aller sur http://localhost:3000
-2. Login: `admin` / Mot de passe: `admin`
-3. Importer le dashboard depuis Prometheus
-
-### URLs Utiles
-- Prometheus: http://localhost:9090
-- Metrics Flask: http://localhost:5000/metrics
-- Grafana: http://localhost:3000
-
-## 🎓 Fonctionnalités Principales
-
-### 1. 📚 Exploration des Héros
-- Affichage en grille responsive
-- Recherche par nom, pays, époque
-- Filtrage par catégorie
-- Tri par popularité
-- Vue détaillée avec biographie complète
-
-### 2. 🧠 Quiz Interactif
-- Questions en temps réel (WebSocket)
-- 3 niveaux de difficulté
-- Feedback immédiat
-- Classement en direct
-- Statistiques personnelles
-
-### 3. ➕ Contribution Communautaire
-- Formulaire d'ajout de héros
-- Validation côté client/serveur
-- Images via URL
-- Catégorisation flexible
-
-### 4. 🔍 Recherche Globale
-- Recherche sur tous les champs
-- Résultats en temps réel
-- Suggestion automatique
-
-### 5. 📊 Tableau de Bord
-- Vue d'ensemble globale
-- Statistiques en temps réel
-- Top héros consultés
-- Monitoring du système
-
-## 🎨 Design & UX
-
-### Caractéristiques du Design
-- ✨ Interface moderne et élégante
-- 🎨 Palette de couleurs harmonieuse (Or, Noir, Blanc)
-- 📱 Responsive Design (Mobile, Tablet, Desktop)
-- ⚡ Animations fluides et transitions douces
-- ♿ Accessibilité optimale
-- 🌙 Support du mode sombre (optionnel)
-
-### Typographie
-- **Títulos**: Playfair Display (serif élégante)
-- **Texte**: Poppins (sans-serif moderne)
-- Hiérarchie visuelle claire
-
-### Couleurs Principales
-```
-- Primaire: #FFD700 (Or)
-- Secondaire: #1a1a1a (Noir)
-- Accent: #FF6B35 (Orange)
-- Succès: #06A77D (Vert)
-- Info: #0066CC (Bleu)
-- Erreur: #E63946 (Rouge)
-```
-
-## 🐳 Docker & Orchestration
-
-### Services
-1. **web**: Application Flask (port 5000)
-2. **db**: PostgreSQL (port 5432)
-3. **prometheus**: Monitoring (port 9090)
-4. **grafana**: Dashboards (port 3000)
-
-### Réseau Docker
-- Bridge network: `heroes_network`
-- Isolation et communication sécurisée
-
-### Volumes
-- `postgres_data`: Persistance BD
-- `prometheus_data`: Métriques stockées
-- `grafana_data`: Configuration Grafana
-
-## 🔐 Configuration & Sécurité
-
-### Variables d'Environnement
-```env
-FLASK_ENV=production
-DATABASE_URL=postgresql://heroes_user:heroes_pass@db:5432/heroes_db
-SECRET_KEY=your-secret-key-change-this
-```
-
-### Bonnes Pratiques
-- ✅ Variables sensibles en `.env`
-- ✅ Isolation des services en réseau Docker
-- ✅ Healthchecks pour la BD
-- ✅ Validation des données
-- ✅ Gestion des erreurs cohérente
-
-## 🚀 CI/CD avec GitHub Actions
-
-(Voir la section déploiement)
-
-## 📝 Développement Local
-
-### Installation d'Environnement
-```bash
-# Créer un environnement virtuel
-python -m venv venv
-
-# Activer l'environnement
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate      # Windows
-
-# Installer les dépendances
-pip install -r requirements.txt
-```
-
-### Lancer en Mode Développement
-```bash
-export FLASK_ENV=development
-python run.py
-```
-
-## 🤝 Contribution
-
-Les contributions sont bienvenues! Pour contribuer:
-
-1. Fork le dépôt
-2. Créer une branche (`git checkout -b feature/amazing-feature`)
-3. Commit vos changements (`git commit -m 'Add amazing feature'`)
-4. Push vers la branche (`git push origin feature/amazing-feature`)
-5. Ouvrir une Pull Request
-
-## 📄 Licence
-
-Ce projet est sous licence MIT - voir le fichier `LICENSE`
-
-## 👤 Auteur
-
-**PJDevNet**
-- GitHub: [@pjdevnet](https://github.com/pjdevnet)
-
-## 🙏 Remerciements
-
-- Gratitude à tous les héros africains qui ont inspiré ce projet
-- Merci à la communauté Flask et Docker
-- Inspiration des meilleurs projets éducatifs mondiaux
-
-## 📞 Support
-
-Pour toute question ou problème:
-- 📧 Email: contact@pjdevnet.com
-- 🐙 GitHub Issues: [Issues](https://github.com/pjdevnet/devnet-projet/issues)
-
-## 🔗 Ressources Utiles
-
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [PostgreSQL Docs](https://www.postgresql.org/docs/)
-- [Docker Documentation](https://docs.docker.com/)
-- [Prometheus](https://prometheus.io/docs/)
-- [Grafana](https://grafana.com/docs/)
-
-## 📊 Statistiques du Projet
-
-- 🐍 **Langage**: Python 3.11
-- 📦 **Framework**: Flask 2.3
-- 🗄️ **BD**: PostgreSQL 15
-- 🐳 **Conteneurisation**: Docker + Docker Compose
-- 📈 **Monitoring**: Prometheus + Grafana
-- ⚡ **Temps Réel**: Flask-SocketIO
-- 🎨 **Frontend**: Bootstrap 5 + CSS3
+# 🌍 Plateforme Héros Africains - Projet DEVNET
+
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/flask-2.3-white)](https://flask.palletsprojects.com/)
+[![Docker](https://img.shields.io/badge/docker-latest-blue)](https://www.docker.com/)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-15-336791)](https://www.postgresql.org/)
+
+**Plateforme web éducative distribuée pour découvrir l'histoire des héros africains** | L3 Réseaux & Informatique - ISI Keur Massar
 
 ---
 
-**Fait avec ❤️ pour l'Afrique et son histoire**
+## 📋 Table des Matières
+
+| Section | Lien |
+|---------|------|
+| 🎯 Vue d'Ensemble | [Voir](#vue-densemble) |
+| 🚀 Démarrage | [Voir](#démarrage-rapide) |
+| 🏗️ Architecture | [Voir](#architecture) |
+| 🐳 Docker | [Voir](#docker--conteneurisation) |
+| 📊 Monitoring | [Voir](#monitoring) |
+| 📚 Documentation | [Voir](#documentation-complète) |
+
+---
+
+## 🎯 Vue d'Ensemble
+
+### Problème & Solution
+
+| Aspect | Détail |
+|--------|--------|
+| **Problème** | Manque de ressources éducatives interactives pour valoriser les héros africains |
+| **Solution** | Plateforme collaborative avec 24+ héros, quiz temps réel, API REST distribuée |
+| **Impact** | ✅ 100% responsive • ✅ Quiz multiplayer • ✅ Monitoring en temps réel |
+
+### Objectifs Atteints
+
+✅ **Valoriser** les héros africains avec biographies complètes  
+✅ **Éduquer** via quiz interactifs (solo & duo)  
+✅ **Intégrer** technologies modernes (Flask, Docker, WebSocket, Prometheus)  
+✅ **Démontrer** architecture distribuée avec orchestration Docker  
+✅ **Monitorer** performances en temps réel
+
+### Statistiques
+
+24+ Héros | 8 Catégories | 70+ questions | 6 Services Docker
+
+
+---
+
+## 🚀 Démarrage Rapide
+
+### Installation (3 minutes)
+
+```bash
+# 1️⃣ Cloner
+git clone https://github.com/aramayacouba/heroes-africains.git
+cd heroes_africains
+
+# 2️⃣ Lancer
+docker-compose up -d
+
+# 3️⃣ Accéder
+# Web: http://localhost:5000
+# Grafana: http://localhost:3000 (admin/admin)
+# Prometheus: http://localhost:9090
+
+Arrêter
+
+    docker-compose down -v  # Tout supprimer
+
+🏗️ Architecture
+
+
+Diagramme Réseau
+┌─── Utilisateurs ────────────────────────┐
+│   HTTP/REST + WebSocket (SocketIO)     │
+└─────────────────┬──────────────────────┘
+                  │
+    ┌─────────────┼─────────────┐
+    │             │             │
+    ▼             ▼             ▼
+┌────────┐   ┌────────┐   ┌──────────┐
+│Web UI  │   │API     │   │WebSocket │
+│(Flask) │   │(REST)  │   │(SocketIO)│
+└────┬───┘   └───┬────┘   └────┬─────┘
+     │          │              │
+     └──────────┼──────────────┘
+                │
+     ┌──────────▼──────────┐
+     │  Docker Network     │
+     │  heroes_network     │
+     └──────────┬──────────┘
+                │
+    ┌───────────┼───────────┐
+    │           │           │
+    ▼           ▼           ▼
+┌────────┐ ┌──────────┐ ┌─────────┐
+│PosgSQL │ │Prometheus│ │ Grafana │
+│(5432)  │ │(9090)    │ │(3000)   │
+└────────┘ └──────────┘ └─────────┘
+
+Technique de la pile
+
+      Couche	Tech	Rôle
+      Frontend	Bootstrap 5 + CSS3 + JS	Réactivité à l’interface
+      Backend	Flask 2.3 (Python 3.11)	API REST + Logique métier
+      Temps Réel	Flask-SocketIO	WebSocket pour quiz en direct
+      BD	PostgreSQL 15	Persistance distribuée
+      Surveillance	Prométhée + Grafana	Métriques & tableaux de bord
+      Orchestration	Docker + Composer	6 services orchestrés
+  
+📋 Structure
+
+      heroes_africains/
+      │
+      ├── 📁 app/                          # Code source Flask
+      │   ├── __init__.py                  # Initialisation et factory Flask
+      │   ├── models.py                    # Modèles SQLAlchemy
+      │   ├── routes.py                    # Routes HTTP principales
+      │   ├── api.py                       # Endpoints API REST
+      │   ├── socketio_events.py           # Événements WebSocket
+      │   │
+      │   ├── 📁 templates/                # Templates HTML Jinja2
+      │   │   ├── base.html                # Template de base (navbar, footer)
+      │   │   ├── index.html               # Page d'accueil
+      │   │   ├── hero_detail.html         # Page détail d'un héros
+      │   │   ├── category.html            # Listing par catégorie
+      │   │   ├── add_hero.html            # Formulaire d'ajout
+      │   │   └── quiz.html                # Interface interactive du quiz
+      │   │
+      │   └── 📁 static/                   # Ressources statiques
+      │       ├── 📁 css/
+      │       │   └── style.css            # Styles CSS personnalisés
+      │       ├── 📁 js/
+      │       │   ├── script.js            # JavaScript global
+      │       │   └── quiz.js              # Logique du quiz
+      │       ├── 📁 images/
+      │       │   └── heroes/              # Images des héros
+      │       └── 📁 fonts/                # Polices custom
+      │
+      ├── 📁 docker/                       # Configuration Docker
+      │   ├── init-db.sql                  # Script d'initialisation BD
+      │   ├── pgadmin_servers.json         # Configuration PgAdmin
+      │   ├── prometheus.yml               # Configuration Prometheus
+      │   │
+      │   └── 📁 grafana/
+      │       ├── 📁 provisioning/
+      │       │   ├── datasources/
+      │       │   │   └── prometheus.yml   # Datasource Prometheus
+      │       │   └── dashboards/
+      │       │       ├── dashboards.yml   # Configuration dashboards
+      │       │       └── heroes.json      # Dashboard monitoring
+      │       │
+      │       └── 📁 dashboards/           # Dashboards JSON
+      │
+      ├── 📄 config.py                     # Configuration (DB, environnement)
+      ├── 📄 run.py                        # Point d'entrée application
+      ├── 📄 requirements.txt              # Dépendances Python
+      ├── 📄 Dockerfile                    # Image Flask multi-stage
+      ├── 📄 docker-compose.yml            # Orchestration services
+      ├── 📄 .dockerignore                 # Fichiers à ignorer dans Docker
+      ├── 📄 .env                          # Variables d'environnement (⚠️ GIT IGNORED)
+      ├── 📄 .env.example                  # Exemple de .env
+      ├── 📄 .gitignore                    # Fichiers à ignorer dans Git
+      │
+      ├── 📄 README.md                     # Cette documentation
+      ├── 📄 DEMO.md                       # Guide de démonstration
+      ├── 📄 LICENSE                       # Licence MIT
+      │
+      └── 📁 .github/
+          └── 📁 workflows/
+              └── docker-publish.yml       # CI/CD GitHub Actions
+
+🗄️ Données
+
+Modèle ER
+
+CATEGORIES (8) ←── HEROES (24+) ←── QUIZ_QUESTIONS (70+)
+                                     ↓
+                              USER_QUIZ_SCORES
+
+Tables Principales
+
+ -- Categories (8 enregistrements)
+CREATE TABLE categories (id, name, icon, created_at);
+
+-- Heroes (24+)
+CREATE TABLE heroes (id, name, country, category_id, bio, views, ...);
+
+-- Quiz (70+ questions)
+CREATE TABLE quiz_questions (id, hero_id, question, options A-D, difficulty);
+
+-- Scores (dynamique)
+CREATE TABLE user_quiz_scores (id, session_id, score, percentage, ...);
+
+🌐 API REST
+
+   Points de terminaison (8+)
+
+GET    /api/heroes              # Lister héros (pagination)
+GET    /api/hero/<id>           # Détail
+PUT    /api/hero/<id>           # Modifier
+DELETE /api/hero/<id>           # Supprimer
+GET    /api/categories          # Catégories
+GET    /api/quiz-questions      # Questions
+GET    /api/stats               # Statistiques
+GET    /search?q=               # Recherche
+
+Exemple
+    curl http://localhost:5000/api/heroes?page=1&per_page=10
+
+⚡ WebSocket & Temps Réel
+
+    Quiz Solo
+Client: start_quiz(difficulty)
+Server: quiz_started(question)
+Client: submit_answer(A)
+Server: answer_result(correct) + next_question
+...
+Server: quiz_completed(score)
+
+Quiz Duo
+      Joueur 1: create_duo_game() → Code ABC
+      Joueur 2: join_duo_game(ABC)
+      Both: Questions synchronisées
+      Server: Leaderboard en direct
+
+
+📊 Surveillance
+
+    Prométhée (http://localhost:9090)
+    Métriques collectées :
+flask_http_requests_total          # Total requêtes
+flask_http_request_duration_seconds # Latence (ms)
+flask_http_requests_total{status}   # Par statut (2xx/4xx/5xx)
+
+Grafana (http://localhost:3000)
+Tableau de bord « Plateforme Héros Africains » :
+
+📊 Totaux HTTP des requêtes (graphique circulaire)
+⏱️ Temps de réponse moyen (stat)
+📈 Taux de requêtes (séries temporelles)
+❌ Erreurs 4xx (stat)
+⚠️ Erreurs 5xx (stat)
+✅ Requêtes 200 (stat)
+
+
+🐳 Docker & Conteneurisation
+  Services
+  
+    Service	Image	Port	Rôle
+Web	Python 3.11	5000	Application Flask
+db	PostgreSQL 15	5432	Base de données
+Prométhée	Prométhée	9090	Collecte métriques
+Grafana	Grafana 10.4	3000	Tableaux de bord
+PGADMIN	PgAdmin 4	5050	Gestion BD
+Postgres-exportateur	Exportateur	9187	Métriques PG
+
+Réseau Docker
+
+Network: heroes_network (bridge)
+Subnet: 172.25.0.0/16
+
+Services connectés:
+├─ web ←→ db (psql/5432)
+├─ prometheus ← web (/metrics)
+├─ grafana ← prometheus (datasource)
+└─ pgadmin ← db (gestion)
+
+Volumes Persistants
+
+postgres_data      # BD (chiffrée)
+prometheus_data    # Métriques (30j rétention)
+grafana_data       # Configuration
+pgadmin_data       # Configuration
+
+Commandes Essentielles
+
+docker-compose up -d          # Démarrer
+docker-compose ps             # État
+docker-compose logs -f web    # Logs temps réel
+docker-compose down -v        # Arrêter + supprimer
+docker-compose exec web bash  # Shell
+
+🎮 Fonctionnalités
+
+1️⃣ Exploration des Héros
+✅ Grille responsive (1/2/3-4 colonnes)
+✅ Recherche multi-champs
+✅ Filtrage par catégorie
+✅ Tri par popularité
+✅ Biographie complète + années
+
+2️⃣ Quiz Interactif
+Mode Solo :
+
+3 niveaux (Facile 5Q, Moyen 8Q, Difficile 10Q)
+Retour immédiat
+Barre de progression
+Scores de sauvegarde
+Duo de modes :
+
+Code court pour rejoindre
+5 questions synchronisées
+Classement en direct
+Podium avec médailles 🥇🥈🥉
+3️⃣ Contribution
+✅ Formulaire d’ajout de héros
+✅ Validation server
+✅ Images via URL
+✅ Biographie + réalisations
+
+4️⃣ Tableau de Bord
+✅ Statistiques globales
+✅ Top 5 héros
+✅ Compteurs animés
+
+🔐 Configuration & Sécurité
+
+   Variables d’Environnement (.env)
+# FLASK
+FLASK_APP=run.py
+FLASK_ENV=production
+DEBUG=False
+SECRET_KEY=<secret>
+
+# DATABASE
+POSTGRES_USER=african_legends
+POSTGRES_PASSWORD=<password>
+POSTGRES_DB=heroes_db
+DATABASE_URL=postgresql://...
+
+# GRAFANA
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=<password>
+
+# APP
+CORS_ORIGINS=*
+
+Bonnes Pratiques
+✅ Secrets en .env (non versionné)
+✅ Non-root user (UID 1000)
+✅ Healthchecks activés
+✅ Validation côté server
+✅ Isolation réseau Docker
+
+
+📝 Développement local
+
+# 1. Cloner
+git clone https://github.com/aramayacouba/heroes-africains.git
+
+# 2. Env virtuel
+python -m venv venv
+source venv/bin/activate  # ou venv\Scripts\activate (Windows)
+
+# 3. Dépendances
+pip install -r requirements.txt
+
+# 4. BD locale
+docker run -d --name heroes_db -e POSTGRES_USER=african_legends \
+  -e POSTGRES_PASSWORD=passer123 -e POSTGRES_DB=heroes_db \
+  -p 5432:5432 postgres:15-alpine
+
+# 5. Lancer
+export FLASK_ENV=development
+python run.py
+
+📚 Documentation complète
+
+API REST
+Exemples :
+
+      # Lister héros
+curl http://localhost:5000/api/heroes?page=1&per_page=10
+
+# Détail héros
+curl http://localhost:5000/api/hero/1
+
+# Catégories
+curl http://localhost:5000/api/categories
+
+# Statistiques
+curl http://localhost:5000/api/stats
+
+# Recherche
+curl http://localhost:5000/search?q=mandela
+
+WebSocket
+
+const socket = io({
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: 5
+});
+
+// Solo
+socket.emit('start_quiz', {session_id, difficulty});
+
+// Duo
+socket.emit('create_duo_game', {difficulty, player_name});
+socket.emit('join_duo_game', {game_id, player_name});
+
+📞 Soutien
+
+Canal	Contact
+📧 Email	yacoubaarama12@gmail.com
+🐙 Problèmes sur GitHub	Ouvrir, numéro
+💬 Discussions	Discussions
+
+👨 💻 Auteur
+
+aramayacouba (Arama Yacouba)
+
+🐙 GitHub : @aramayacouba
+🐳 Docker Hub : @arama01
+📧 Email : yacoubaarama12@gmail.com
+
+📊 Statistiques Finales
+
+🐍 Python 3.11      📦 Flask 2.3         🗄️ PostgreSQL 15
+🐳 Docker Compose   📈 Prometheus+Grafana ⚡ Flask-SocketIO
+
+🦸 24+ Héros        📂 8 Catégories       ❓ 70+ Questions
+🔌 8+ Endpoints     📡 10+ Événements     🐳 6 Services Docker
+
+⏱️ < 1 min démarrage  📦 496 MB image      📝 ~3000 lignes code
+
+<div align="center">
+🎉 Fait avec ❤️ pour valoriser l’histoire africaine
+
+« L’Afrique n’a pas besoin de savants, elle a besoin de croire en ses fils. » — Frantz Fanon
+
+🌍 🦸‍♂️ 🎓 💡 🚀
+
+Valoriser | Éduquer | Inspirer | Innover | Réussir
+
+Version 1.0.0 | Dernière mise à jour le 26-03-2026 | Licence MIT | Statut ✅ actif
+
+</div> ```

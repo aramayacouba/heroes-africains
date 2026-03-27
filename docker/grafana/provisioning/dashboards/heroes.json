@@ -56,8 +56,9 @@
       },
       "targets": [
         {
-          "expr": "flask_http_requests_total",
-          "refId": "A"
+          "expr": "sum(rate(flask_http_requests_total[5m])) by (status)",
+          "refId": "A",
+          "legendFormat": "Status {{status}}"
         }
       ],
       "title": "Requêtes HTTP Totales",
@@ -179,7 +180,7 @@
       },
       "targets": [
         {
-          "expr": "rate(flask_http_requests_total[1m])",
+          "expr": "sum(rate(flask_http_requests_total[1m]))",
           "refId": "A"
         }
       ],
@@ -203,11 +204,11 @@
               },
               {
                 "color": "yellow",
-                "value": 10
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 50
+                "value": 5
               }
             ]
           }
@@ -342,7 +343,7 @@
     "from": "now-6h",
     "to": "now"
   },
-  "timepicker": {}, 
+  "timepicker": {},
   "timezone": "",
   "title": "Plateforme Héros Africains - Monitoring",
   "uid": "heroes-platform",
